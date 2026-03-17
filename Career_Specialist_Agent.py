@@ -14,7 +14,7 @@ else:
 
 # Model setup
 model = genai.GenerativeModel(
-    model_name='gemini-1.5-flash', # Humne Flash model rakha hai taaki speed achhi mile
+    model_name='gemini-2.5-flash', # Humne Flash model rakha hai taaki speed achhi mile
     system_instruction="You are 'PathFinder', the expert for the Career Specialist Roadmap."
 )
 
