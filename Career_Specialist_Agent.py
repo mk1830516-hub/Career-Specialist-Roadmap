@@ -5,7 +5,7 @@ import os
 import uuid
 
 # --- 1. CONFIG ---
-api_key = "AIzaSyDYBClTO7HuH7wGVRjyPvxK3m6SIoOABX0"
+api_key = "AIzaSyDXF7ukHeD2QSMsAzDAVYnQOICYXPtaxYs"
 genai.configure(api_key=api_key)
 model = genai.GenerativeModel(
     model_name='gemini-2.5-flash',
