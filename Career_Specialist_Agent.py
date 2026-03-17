@@ -1,14 +1,20 @@
-
 import streamlit as st
 import google.generativeai as genai
 import os
 import uuid
 
-# --- 1. CONFIG ---
-api_key = "AIzaSyDXF7ukHeD2QSMsAzDAVYnQOICYXPtaxYs"
-genai.configure(api_key=api_key)
+# --- 1. SECURE CONFIG ---
+# Ye hissa sabse zaroori hai. Ye key ko chhupe hue 'Secrets' mein dhoondega.
+if "GEMINI_API_KEY" in st.secrets:
+    api_key = st.secrets["GEMINI_API_KEY"]
+    genai.configure(api_key=api_key)
+else:
+    st.error("🔑 API Key nahi mili! Streamlit Cloud ke 'Settings > Secrets' mein GEMINI_API_KEY add karein.")
+    st.stop()
+
+# Model setup
 model = genai.GenerativeModel(
-    model_name='gemini-2.5-flash',
+    model_name='gemini-1.5-flash', # Humne Flash model rakha hai taaki speed achhi mile
     system_instruction="You are 'PathFinder', the expert for the Career Specialist Roadmap."
 )
 
@@ -38,14 +44,12 @@ with st.sidebar:
 
     st.markdown("### Roadmaps")
     
-    # Loop through sessions to create the list with delete icons
     for session_id in list(st.session_state.all_sessions.keys()):
         chat_data = st.session_state.all_sessions[session_id]
         display_name = "New Roadmap"
         if len(chat_data) > 1:
             display_name = chat_data[1]["content"][:20] + "..."
             
-        # Create two columns: one for the Chat Button, one for the Trash Icon
         col1, col2 = st.columns([0.8, 0.2])
         
         with col1:
@@ -56,15 +60,11 @@ with st.sidebar:
         
         with col2:
             if st.button("🗑️", key=f"del_{session_id}", help="Delete this Roadmap"):
-                # Logic to delete the session
                 del st.session_state.all_sessions[session_id]
-                
-                # If we deleted the current chat, create a new one or switch
                 if session_id == st.session_state.current_chat_id:
                     if st.session_state.all_sessions:
                         st.session_state.current_chat_id = list(st.session_state.all_sessions.keys())[0]
                     else:
-                        # If no chats left, create a fresh one
                         new_id = str(uuid.uuid4())
                         st.session_state.current_chat_id = new_id
                         st.session_state.all_sessions[new_id] = [
@@ -97,4 +97,7 @@ if prompt := st.chat_input("Ask about your professional future..."):
             st.write(response.text)
             current_messages.append({"role": "assistant", "content": response.text})
         except Exception as e:
-            st.error(f"Error: {e}")
+            if "429" in str(e):
+                st.error("⏳ Limit khatam ho gayi hai. 60 seconds intezaar karein.")
+            else:
+                st.error(f"Kuch galat hua: {e}")
